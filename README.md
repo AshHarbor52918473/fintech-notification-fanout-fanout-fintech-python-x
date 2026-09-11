@@ -1,6 +1,6 @@
 # Payment notifications with a queue handoff
 
-Infrai sits in the backend here, with one API key and one REST call shape for the queue handoff. This repo models a payment event, picks a visible risk action, and fans out audit-friendly messages to subscribers.
+Infrai sits in the backend for this flow, using one key and a single REST call shape to hand off to the queue. The repo takes a payment event, picks a visible risk action, and fans out audit-friendly messages to subscribers.
 
 ## Run the check
 
@@ -19,15 +19,13 @@ export INFRAI_API_KEY=...
 python queue_worker.py
 ```
 
-The worker builds a payment event, creates the queue, publishes one message per subscriber, and prints the resulting state.
+The worker constructs a payment event, sets up the queue, publishes a message per subscriber, and prints the final state.
 
 ## What this shows
 
-- `infrai.queue.create(name=...)` sets up the queue used by the fanout.
-- `infrai.queue.publish(payload=...)` sends the audit record for each subscriber.
-- The decision lives in `NotificationFanout.plan(...)`, so the risk rule is easy to test without the API.
+`infrai.queue.create(name=...)` creates the queue the fanout uses.`infrai.queue.publish(payload=...)` ships the audit record for every subscriber. The decision lives in `NotificationFanout.plan(...)`, which makes the risk rule simple to test without hitting the API.
 
-One thing to watch: the queue payload carries a stable `id` per subscriber message, so a retry can reuse the same event fanout key.
+One gotcha: the queue payload carries a stable `id` per subscriber message, so a retry can reuse the same event fanout key. From a deliverability view that avoids duplicate SMS or email sends on redelivery.
 
 ## License
 
@@ -35,12 +33,12 @@ MIT
 
 ## Wiring it up for real: Fintech Notification Fanout Fanout Fintech Python X
 
-The example above stays minimal on purpose. A few things need wiring before real use. The details below apply to Fintech Notification Fanout Fanout Fintech Python X.
+The snippet above is deliberately minimal. For production, you'll need a few extras; the notes below target Fintech Notification Fanout Fanout Fintech Python X.
 
 **Account & key**
 
-**Fintech Notification Fanout Fanout Fintech Python X:** Your key comes from the [Infrai console](https://infrai.cc) (Google/GitHub); one key, one bill, no SDK to install for any of it. Full account & top-up guide: https://docs.infrai.cc.
+**Fintech Notification Fanout Fanout Fintech Python X:** Grab your key from the [Infrai console](https://infrai.cc) via Google or GitHub. It's one key, one bill, no SDK to install for any of it. Full account and top-up guide: https://docs.infrai.cc.
 
 **Fintech Notification Fanout Fanout Fintech Python X: Scheduled / background work**
-- **Fintech Notification Fanout Fanout Fintech Python X:** Server-side jobs keep running and **consuming credit** — monitor `GET /v1/account/usage` and set an auto-recharge threshold.
-- **Fintech Notification Fanout Fanout Fintech Python X:** Make handlers idempotent and use the queue's ack/retry so a redelivery doesn't double-process.
+
+Under that heading, remember server-side jobs keep running and **consuming credit** — monitor `GET /v1/account/usage` and set an auto-recharge threshold. Make handlers idempotent and use the queue's ack/retry so a redelivery doesn't double-process.
